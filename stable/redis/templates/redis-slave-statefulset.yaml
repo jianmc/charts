@@ -273,9 +273,11 @@ spec:
         - name: redis-password
           mountPath: /opt/bitnami/redis/secrets/
         {{- end }}
+        {{- if .Values.slave.persistence.enabled }}
         - name: redis-data
           mountPath: {{ .Values.master.persistence.path }}
           subPath: {{ .Values.master.persistence.subPath }}
+        {{- end }}
         - name: config
           mountPath: /opt/bitnami/redis-sentinel/mounted-etc
         - name: sentinel-tmp-conf
