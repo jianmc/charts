@@ -296,9 +296,11 @@ spec:
         resources:
 {{ toYaml .Values.volumePermissions.resources | indent 10 }}
         volumeMounts:
+        {{- if .Values.slave.persistence.enabled }}
         - name: redis-data
           mountPath: {{ .Values.slave.persistence.path }}
           subPath: {{ .Values.slave.persistence.subPath }}
+        {{- end }}
       {{- end }}
       {{- if .Values.sysctlImage.enabled }}
       - name: init-sysctl
@@ -340,7 +342,17 @@ spec:
         emptyDir: {}
       - name: redis-tmp-conf
         emptyDir: {}
-  {{- if and .Values.slave.persistence.enabled }}
+      {{- if not .Values.slave.persistence.enabled }}
+      - name: "redis-data"
+        emptyDir: {}
+      {{- else }}
+      {{- if .Values.persistence.existingClaim }}
+      - name: "redis-data"
+        persistentVolumeClaim:
+          claimName: {{ .Values.persistence.existingClaim }}
+      {{- end }}
+      {{- end }}
+  {{- if and .Values.slave.persistence.enabled (not .Values.persistence.existingClaim) }}
   volumeClaimTemplates:
     - metadata:
         name: redis-data
